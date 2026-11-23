@@ -30,6 +30,10 @@ demo directory="target/test-pki":
     @if [ ! -d {{quote(directory)}} ]; then just pki {{quote(directory)}}; fi
     cargo run --locked --features simulator --example mms_read -- {{quote(directory)}}
 
+# Exercise the IEC 61850 and EEBUS bridge with in-memory peers.
+bridge:
+    cargo test --locked -p smgw-cls --features fnn-bridge --test lpc_bridge
+
 # Verify the bundled wake-up fixture with OpenSSL and Rust.
 wakeup:
     python3 scripts/check-wakeup-fixture.py

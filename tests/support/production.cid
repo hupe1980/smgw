@@ -1,0 +1,25 @@
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B" release="4">
+  <Header id="smgw-cls-production-test"/>
+  <IED name="CLS"><AccessPoint name="HAN"><Server><LDevice inst="LD0">
+    <LN0 lnClass="LLN0" inst="" lnType="LLN0"/>
+    <LN lnClass="DWMX" inst="1" lnType="DWMX"/>
+  </LDevice></Server></AccessPoint></IED>
+  <DataTypeTemplates>
+    <LNodeType id="LLN0" lnClass="LLN0"/>
+    <LNodeType id="DWMX" lnClass="DWMX"><DO name="WMaxSetPct" type="SetPoint"/></LNodeType>
+    <DOType id="SetPoint" cdc="APC">
+      <DA name="ctlModel" fc="CF" bType="Enum" type="ControlModel"><Val>direct-with-normal-security</Val></DA>
+      <DA name="Oper" fc="CO" bType="Struct" type="Operate"/>
+    </DOType>
+    <DAType id="Operate">
+      <BDA name="ctlVal" bType="Struct" type="AnalogueValue"/>
+      <BDA name="origin" bType="Struct" type="Origin"/>
+      <BDA name="ctlNum" bType="INT8U"/><BDA name="T" bType="Timestamp"/>
+      <BDA name="Test" bType="BOOLEAN"/><BDA name="Check" bType="Check"/>
+    </DAType>
+    <DAType id="AnalogueValue"><BDA name="f" bType="FLOAT32"/></DAType>
+    <DAType id="Origin"><BDA name="orCat" bType="Enum" type="OriginCategory"/><BDA name="orIdent" bType="Octet64"/></DAType>
+    <EnumType id="OriginCategory"><EnumVal ord="0">not-supported</EnumVal></EnumType>
+    <EnumType id="ControlModel"><EnumVal ord="1">direct-with-normal-security</EnumVal></EnumType>
+  </DataTypeTemplates>
+</SCL>

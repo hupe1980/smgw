@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+- Extended the FNN bridge with production limits (LPP) and signed active-power readback from a grid connection point (MGCP) or individual device (MPC).
+
 ## 0.2.0
 
 - Added an allocation-free CLS session engine with deadlines, cancellation and bounded retries.

@@ -1,6 +1,6 @@
 +++
 title = "Developer guide"
-description = "Read power from a simulated meter over mutual TLS, integrate the session engine, map a load limit and verify an archived wake-up."
+description = "Read power from a simulated meter over mutual TLS, integrate the session engine, bridge EEBUS controls and measurements and verify an archived wake-up."
 template = "guide.html"
 +++
 
@@ -48,14 +48,18 @@ Use `engine::Session` when your application owns the sockets and clock. The core
 
 The default policy gives each connect attempt five seconds, bounds an active session at sixty seconds, and allows three additional attempts with delays of one, two and four seconds. The one-shot MMS example uses its own fifteen-second overall budget.
 
-## Map a consumption limit
+## Bridge power limits and measurements
 
-Enable `fnn-bridge` to bind two commissioned MMS control references to a single EEBUS device offering Limitation of Power Consumption (LPC) and a nonzero reference power in watts. The first reference accepts a floating-point percentage from 0 through 100. The second accepts an explicit boolean `true` to release the limit. A zero-percent limit keeps the limit active at zero watts. [LpcBridge API](../api/smgw_cls/bridge/struct.LpcBridge.html)
+Enable the bridge with `cargo add smgw-cls --features fnn-bridge`. Configure the IEC 61850 control reference, EEBUS destination and reference power. At 40% of 10 kW, an LPC consumption limit is +4,000 W. An LPP production limit is −4,000 W on the wire. Zero percent activates a zero-watt limit. Use the separately commissioned release control to deactivate it. [EEBUS LPP sign conventions, §2.8.1](https://www.eebus.org/wp-content/uploads/2023/04/EEBus_UC_TS_LimitationOfPowerProduction_V1.0.0_public.pdf)
 
-Pass an authorized, immediate `Operate` event, a monotonic admission deadline and the current time to `schedule`. The bridge checks the mapped object and ready consumption guard. Its receipt records the control number and locally scheduled watts. Observe the guard's later acknowledgement separately. In the test below, a simulated device acknowledges 40% of 5,000 W and the subsequent release while two SPINE actors exchange datagrams in memory.
+Use `LpcBridge::schedule` with a ready consumption guard. For LPP, `LppBridge::write` enqueues a signed SPINE write on the commissioned connection. Match its message counter with the peer’s result. Read the peer’s limit descriptions and current limit list during commissioning. The driver owns authorization, heartbeats and retry policy. [LPC API](../api/smgw_cls/bridge/struct.LpcBridge.html) · [LPP API](../api/smgw_cls/bridge/struct.LppBridge.html)
+
+For readback, select **MGCP** for net active power at the grid connection point or **MPC** for an individual device. Import or consumption is positive. Export or production is negative. Commission each source against its authenticated peer, entity and watt descriptor. Recommission after a description change and call `disconnect` when the session closes. Read the signed watt value at `MMXU1$MX$TotW$mag$f`, its quality at `TotW$q`, and its source time at `TotW$t`. Configure the maximum sample age. Missing, invalid or expired data makes the watt value unavailable. This profile requires an absolute timestamp with an explicit time zone. [Readback API](../api/smgw_cls/bridge/measurement/struct.PowerReadback.html) · [EEBUS use-case roles](https://www.eebus.org/certification-faq/)
+
+Run the local exchange from the repository root. It sends a 40% production command, checks the peer's acknowledgement, and reads an independent −2,700 W grid sample over MMS.
 
 ```sh
-cargo test --locked --features fnn-bridge --test lpc_bridge
+just bridge
 ```
 
 ## Verify a management wake-up
@@ -99,7 +103,7 @@ The redb store requires local byte-range locks on Linux, Apple platforms or Wind
 | Unknown CLS proxy route | Compare SNI with the provisioned proxy ID. An unknown route is rejected before any WAN connection opens. |
 | No shared cipher or group | Check the OpenSSL library and provider linked by Rust. Run `cargo test --locked -p xtask --test transport` to exercise real handshakes. |
 | Wake-up freshness or replay rejection | Use the trusted time of receipt for the recording and inspect packet ordering within the batch. For persistent verification, check the recipient’s history in the selected replay database. |
-| Bridge reports an unavailable peer | Commission the mapped LPC device and wait for the consumption guard to be ready before submitting a fresh command. |
+| Bridge reports an unavailable peer | Check the mapped device, direction and bindings. For LPP, confirm the peer advertises one matching writable production limit in watts. |
 
 ## Build the documentation
 
