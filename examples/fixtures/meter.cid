@@ -1,0 +1,15 @@
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B" release="4">
+  <Header id="smgw-cls-loopback"/>
+  <IED name="CLS"><AccessPoint name="HAN"><Server><LDevice inst="LD0">
+    <LN0 lnClass="LLN0" inst="" lnType="LLN0"/>
+    <LN lnClass="MMXU" inst="1" lnType="MMXU">
+      <DOI name="TotW"><SDI name="mag"><DAI name="f"><Val>1250</Val></DAI></SDI></DOI>
+    </LN>
+  </LDevice></Server></AccessPoint></IED>
+  <DataTypeTemplates>
+    <LNodeType id="LLN0" lnClass="LLN0"/>
+    <LNodeType id="MMXU" lnClass="MMXU"><DO name="TotW" type="MV"/></LNodeType>
+    <DOType id="MV" cdc="MV"><DA name="mag" fc="MX" bType="Struct" type="AnalogueValue"/></DOType>
+    <DAType id="AnalogueValue"><BDA name="f" bType="FLOAT32"/></DAType>
+  </DataTypeTemplates>
+</SCL>

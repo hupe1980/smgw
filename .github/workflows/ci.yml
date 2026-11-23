@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  minimum-rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the workspace on the minimum supported Rust version
+        run: |
+          minimum=$(cargo metadata --locked --no-deps --format-version 1 | jq -er '.packages[] | select(.name == "smgw-cls") | .rust_version')
+          rustup toolchain install "$minimum" --profile minimal
+          cargo "+$minimum" check --locked --workspace --all-features --all-targets
+
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup component add clippy rustfmt
+      - run: rustup target add thumbv7em-none-eabihf
+      - run: cargo fmt --all -- --check
+      - name: Check the allocation-free parser on bare metal
+        run: cargo check -p smgw-cls --locked --target thumbv7em-none-eabihf --no-default-features --features wakeup
+      - run: cargo clippy --locked --workspace --all-features --all-targets -- -D warnings
+      - run: cargo test --locked --workspace --all-features --all-targets
+      - run: cargo test --locked --workspace --all-features --doc
+      - run: cargo run --locked -p xtask -- gen-pki
+      - run: cargo run --locked --features simulator --example mms_read
+      - run: python3 scripts/check-wakeup-fixture.py
+      - run: cargo run --locked --features wakeup-verify --example wakeup_verify -- --fixture
+      - run: python3 scripts/check-wakeup-replay.py
+      - run: cargo package --locked --all-features -p smgw-cls
+      - name: Run the verifier from the packaged crate
+        run: |
+          package_dir=$(mktemp -d)
+          version=$(cargo metadata --locked --no-deps --format-version 1 | jq -er '.packages[] | select(.name == "smgw-cls") | .version')
+          tar -xzf "target/package/smgw-cls-$version.crate" -C "$package_dir" --strip-components=1
+          cargo run --locked --manifest-path "$package_dir/Cargo.toml" --features wakeup-store --example wakeup_verify -- --replay-db "$package_dir/replay.redb" --fixture

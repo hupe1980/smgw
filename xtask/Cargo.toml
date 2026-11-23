@@ -1,0 +1,17 @@
+[package]
+name = "xtask"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+openssl = "0.10"
+tempfile = "3"
+
+[target.'cfg(any(target_vendor = "apple", target_os = "linux", target_os = "android"))'.dependencies]
+rustix = { version = "1", features = ["fs"] }
+
+[dev-dependencies]
+smgw-cls = { path = "..", features = ["runtime"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-util", "net", "time"] }

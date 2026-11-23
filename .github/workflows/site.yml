@@ -1,0 +1,54 @@
+name: Site
+
+on:
+  pull_request:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: zola@0.23.6
+      - run: scripts/build-site.sh
+        env:
+          RUSTDOCFLAGS: -D warnings
+      - run: python3 scripts/check-site.py
+      - name: Upload site
+        if: github.event_name == 'workflow_run'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/site
+
+  deploy:
+    if: github.event_name == 'workflow_run'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

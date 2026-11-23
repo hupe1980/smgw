@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="wrap guide-layout">
+  <aside class="guide-nav">
+    <nav aria-label="Guide contents">
+      <p>On this page</p>
+      <ul>
+        {% for heading in section.toc %}
+        <li><a href="#{{ heading.id }}">{{ heading.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </aside>
+  <article class="prose" aria-labelledby="guide-title">
+    <h1 id="guide-title">{{ section.title }}</h1>
+    <p class="lead">{{ section.description }}</p>
+    {{ section.content | safe }}
+  </article>
+</div>
+{% endblock content %}
