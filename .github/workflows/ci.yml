@@ -34,6 +34,7 @@ jobs:
       - run: cargo test --locked --workspace --all-features --doc
       - run: cargo run --locked -p xtask -- gen-pki
       - run: cargo run --locked --features simulator --example mms_read
+      - run: cargo run --locked --no-default-features --example relay_tariff
       - run: python3 scripts/check-wakeup-fixture.py
       - run: cargo run --locked --features wakeup-verify --example wakeup_verify -- --fixture
       - run: python3 scripts/check-wakeup-replay.py
@@ -43,5 +44,5 @@ jobs:
           package_dir=$(mktemp -d)
           version=$(cargo metadata --locked --no-deps --format-version 1 | jq -er '.packages[] | select(.name == "smgw-cls") | .version')
           tar -xzf "target/package/smgw-cls-$version.crate" -C "$package_dir" --strip-components=1
-          cargo test --locked --manifest-path "$package_dir/Cargo.toml" --features fnn-bridge --test lpc_bridge
+          cargo test --locked --manifest-path "$package_dir/Cargo.toml" --features fnn-bridge --test lpc_bridge --test relay_bridge
           cargo run --locked --manifest-path "$package_dir/Cargo.toml" --features wakeup-store --example wakeup_verify -- --replay-db "$package_dir/replay.redb" --fixture

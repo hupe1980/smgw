@@ -62,6 +62,27 @@ Run the local exchange from the repository root. It sends a 40% production comma
 just bridge
 ```
 
+## Simulate relay controls and tariff windows
+
+Run the example from the repository root. W4 stays dimmed across tariff changes. At UTC second 5400, the requested generation stage is 30% and the independent feedback sample reports 60%.
+
+```sh
+cargo run --locked --no-default-features --example relay_tariff
+```
+
+| Generation limit | Active generation contact |
+| --- | --- |
+| 100% | None |
+| 60% | S1 |
+| 30% | S2 |
+| 0% | W3 |
+
+W4 independently requests load dimming. Initialize both settings explicitly. A request for 40% fails and preserves the previous state. Select the relay or EEBUS interface during commissioning. Losing a connection does not transfer control. [VDE FNN relay assignments, §6](https://www.vde.com/resource/blob/2380710/0220c532a4ecec2b29c25c52858290dc/vde-fnn-hinweis-schnittstellen-steuerungseinrichtung-data.pdf)
+
+With `fnn-bridge`, map the generation percentage and Boolean dimming command to two distinct MMS control references. For status reads, commission four Boolean status leaves and supply independently sampled contacts. Pass `None` for missing or stale feedback. Conflicting indications remain visible for diagnosis. [Relay adapter API](../api/smgw_cls/bridge/relay/index.html)
+
+For Module 3, supply the grid operator’s standard, low and high windows as consecutive UTC intervals. Convert the operator’s local calendar, including daylight-saving changes, before constructing the schedule. The end of each interval is exclusive. Outside the supplied period the tariff is unknown. Looking up a tariff leaves active limits in force. [Tariff API](../api/smgw_cls/fnn/tariff/index.html) · [Bundesnetzagentur guidance](https://www.bundesnetzagentur.de/DE/Vportal/Energie/SteuerbareVBE/Netzentgelt_table.html)
+
 ## Verify a management wake-up
 
 For structural inspection, `wakeup::parse` returns borrowed, unverified fields. Enable `wakeup-verify` to check the gateway recipient, signature, algorithm, freshness and replay state. The bundled offline fixture supplies a trusted synthetic public key and fixed UTC time. [Decoder API](../api/smgw_cls/wakeup/index.html) · [Verifier API](../api/smgw_cls/wakeup/verify/struct.WakeUpVerifier.html)

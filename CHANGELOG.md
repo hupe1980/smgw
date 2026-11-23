@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- Added FNN relay simulation with independent generation and load controls, commissioned MMS contact feedback, and an allocation-free Module 3 tariff lookup.
+
 ## 0.3.0
 
 - Extended the FNN bridge with production limits (LPP) and signed active-power readback from a grid connection point (MGCP) or individual device (MPC).

@@ -33,6 +33,7 @@ pub fn reconnect_delay(initial: Duration, maximum: Duration, retry: u32) -> Dura
 }
 
 pub mod engine;
+pub mod fnn;
 
 #[cfg(feature = "runtime")]
 pub mod transport;

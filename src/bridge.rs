@@ -4,9 +4,11 @@
 //! target device. The limit control accepts a floating-point percentage (0–100).
 //! A separate boolean control releases the limit. The caller authenticates and
 //! authorizes operate events, drives SPINE delivery, and observes acknowledgement.
+//! For commissioned legacy relay controls and contact feedback, see [`relay`].
 //! Use [`measurement::PowerReadback`] to expose independently measured power over MMS.
 
 pub mod measurement;
+pub mod relay;
 
 use core::{fmt, num::NonZeroU32, time::Duration};
 use eebus::{
@@ -66,11 +68,11 @@ pub enum BridgeError {
 impl fmt::Display for BridgeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
-            Self::InvalidMapping => "expected two distinct CO references and a target device",
+            Self::InvalidMapping => "invalid commissioned bridge mapping",
             Self::Expired => "the command admission deadline has passed",
             Self::UnmappedControl => "no configured mapping for this control",
             Self::UnsupportedOperation => "expected an immediate, non-test operate",
-            Self::InvalidValue => "invalid control value for this power limit mapping",
+            Self::InvalidValue => "invalid control value for this mapping",
             Self::PeerUnavailable => {
                 "the guard direction or ready peer does not match this mapping"
             }
@@ -90,6 +92,64 @@ pub struct ScheduledLimit {
     pub watts: Option<f64>,
 }
 
+// The bridge compares the configured names directly with MMS wire names.
+fn validate_reference(name: &str, fc: Fc, min_depth: usize) -> Result<(), BridgeError> {
+    let reference = ObjectReference::parse(name).map_err(|_| BridgeError::InvalidMapping)?;
+    if reference.fc != Some(fc)
+        || reference.path().count() < min_depth
+        || name.contains(['.', '(', ')'])
+    {
+        return Err(BridgeError::InvalidMapping);
+    }
+    Ok(())
+}
+
+fn validate_controls(first: &str, second: &str) -> Result<(), BridgeError> {
+    if first == second {
+        return Err(BridgeError::InvalidMapping);
+    }
+    validate_reference(first, Fc::CO, 1)?;
+    validate_reference(second, Fc::CO, 1)
+}
+
+fn admit_operate(
+    event: &ControlEvent,
+    expires_at: Duration,
+    now: Duration,
+) -> Result<(), BridgeError> {
+    if now >= expires_at {
+        return Err(BridgeError::Expired);
+    }
+    if event.stage != Stage::Operate
+        || event.model == ControlModel::StatusOnly
+        || event.request.test
+        || event.request.oper_tm.is_some()
+    {
+        return Err(BridgeError::UnsupportedOperation);
+    }
+    Ok(())
+}
+
+fn percentage(input: &Value) -> Result<f64, BridgeError> {
+    // An APC Oper carries ctlVal as an AnalogueValue structure.
+    let value = match input {
+        Value::Structure(fields) => match fields.as_slice() {
+            [value] => value,
+            _ => return Err(BridgeError::InvalidValue),
+        },
+        scalar => scalar,
+    };
+    let percent = match value {
+        Value::Float32(n) => f64::from(*n),
+        Value::Float64(n) => *n,
+        _ => return Err(BridgeError::InvalidValue),
+    };
+    if !(0.0..=100.0).contains(&percent) {
+        return Err(BridgeError::InvalidValue);
+    }
+    Ok(percent)
+}
+
 impl Mapping {
     fn new(
         percent_control: &str,
@@ -97,14 +157,8 @@ impl Mapping {
         device: AddressDevice,
         rated_watts: NonZeroU32,
     ) -> Result<Self, BridgeError> {
-        for name in [percent_control, release_control] {
-            let reference =
-                ObjectReference::parse(name).map_err(|_| BridgeError::InvalidMapping)?;
-            if reference.fc != Some(Fc::CO) || reference.path().next().is_none() {
-                return Err(BridgeError::InvalidMapping);
-            }
-        }
-        if percent_control == release_control || device.as_str().trim().is_empty() {
+        validate_controls(percent_control, release_control)?;
+        if device.as_str().trim().is_empty() {
             return Err(BridgeError::InvalidMapping);
         }
         Ok(Self {
@@ -121,33 +175,9 @@ impl Mapping {
         expires_at: Duration,
         now: Duration,
     ) -> Result<Option<f64>, BridgeError> {
-        if now >= expires_at {
-            return Err(BridgeError::Expired);
-        }
-        if event.stage != Stage::Operate
-            || event.model == ControlModel::StatusOnly
-            || event.request.test
-            || event.request.oper_tm.is_some()
-        {
-            return Err(BridgeError::UnsupportedOperation);
-        }
+        admit_operate(event, expires_at, now)?;
         if event.object == self.percent_control {
-            // An APC Oper carries ctlVal as an AnalogueValue structure.
-            let value = match &event.request.ctl_val {
-                Value::Structure(fields) => match fields.as_slice() {
-                    [value] => value,
-                    _ => return Err(BridgeError::InvalidValue),
-                },
-                scalar => scalar,
-            };
-            let percent = match value {
-                Value::Float32(n) => f64::from(*n),
-                Value::Float64(n) => *n,
-                _ => return Err(BridgeError::InvalidValue),
-            };
-            if !(0.0..=100.0).contains(&percent) {
-                return Err(BridgeError::InvalidValue);
-            }
+            let percent = percentage(&event.request.ctl_val)?;
             Ok(Some(f64::from(self.rated_watts.get()) * percent / 100.0))
         } else if event.object == self.release_control {
             if event.request.ctl_val != Value::Boolean(true) {

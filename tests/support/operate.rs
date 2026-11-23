@@ -14,6 +14,14 @@ use iec61850_kit::{
 
 /// Capture the control delivered by the ACSI hook for an encoded MMS Write.
 pub(super) fn production_operate(percent: f32, number: u8) -> ControlEvent {
+    operate(
+        "DWMX1$CO$WMaxSetPct$Oper",
+        Value::Structure(vec![Value::Float32(percent)]),
+        number,
+    )
+}
+
+pub(super) fn operate(item: &str, value: Value, number: u8) -> ControlEvent {
     let ied = Ied::from_scl(include_str!("production.cid"), Some("CLS")).unwrap();
     let mut acsi = Acsi::new(ied);
     let (sender, receiver) = std::sync::mpsc::channel();
@@ -25,7 +33,7 @@ pub(super) fn production_operate(percent: f32, number: u8) -> ControlEvent {
     acsi.set_authenticated(1, true);
 
     let request = ControlRequest::new(
-        Value::Structure(vec![Value::Float32(percent)]),
+        value,
         number,
         UtcTime::from_unix_nanos(0, Default::default()),
     );
@@ -33,7 +41,7 @@ pub(super) fn production_operate(percent: f32, number: u8) -> ControlEvent {
     let access = VariableAccess::ListOfVariable(vec![VariableSpecification::Name(
         ObjectName::DomainSpecific {
             domain: "CLSLD0",
-            item: "DWMX1$CO$WMaxSetPct$Oper",
+            item,
         },
     )]);
     let wire = Mms::ConfirmedRequest {

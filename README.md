@@ -27,15 +27,15 @@ CLSLD0/MMXU1$MX$TotW$mag$f = 1250 W (MMS read over HAN and WAN mutual TLS)
 
 | Configuration | Capability |
 | --- | --- |
-| `default-features = false` | Allocation-free `no_std` session lifecycle, deadlines and reconnect delays |
+| `default-features = false` | Allocation-free `no_std` session engine, logical FNN relay controls and Module 3 tariff lookup |
 | `runtime` | Tokio/OpenSSL endpoints and a bounded, single-session loopback proxy |
 | `simulator` | Runtime and the read-only IEC 61850 example |
-| `fnn-bridge` | Bridge IEC controls to EEBUS consumption and production limits, and read measured active power over MMS |
+| `fnn-bridge` | Map IEC controls to EEBUS limits or logical relays, and serve power measurements or contact feedback over MMS |
 | `wakeup` | Inspect a management wake-up datagram without allocation |
 | `wakeup-verify` | Verify the recipient, signature, freshness and replay status against a provisioned gateway administrator key |
 | `wakeup-store` | Persist each recipient’s latest accepted timestamp in redb across verifier restarts and signing-key rotation |
 
-Run `just bridge` from the checkout to exercise the control and measurement paths together.
+From the repository root, run `just bridge` to test the MMS mappings, or `cargo run --locked --no-default-features --example relay_tariff` to see relay commands, independent contact feedback and tariff changes.
 
 The simulator uses a local TLS 1.2 Brainpool P-256 profile with separate trust anchors and pinned peer certificates on each leg. For an offline signature check with a known public key and reference time, run `cargo run --features wakeup-verify --example wakeup_verify -- --fixture`. Deployment requires its own certificate policy and gateway interoperability testing.
 

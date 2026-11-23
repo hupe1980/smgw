@@ -1,6 +1,6 @@
 [package]
 name = "smgw-cls"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 rust-version = "1.90"
 license = "MIT OR Apache-2.0"
@@ -10,7 +10,7 @@ homepage = "https://hupe1980.github.io/smgw-cls/"
 keywords = ["smgw", "cls", "bsi", "iec61850", "eebus"]
 categories = ["network-programming", "embedded", "no-std"]
 include = [
-    "/src/**/*.rs", "/examples/*.rs", "/tests/lpc_bridge.rs", "/tests/support/**",
+    "/src/**/*.rs", "/examples/*.rs", "/tests/*.rs", "/tests/support/**",
     "/examples/fixtures/meter.cid", "/examples/fixtures/wakeup-v1.bin",
     "/examples/fixtures/wakeup-gwa-public.pem", "/examples/fixtures/wakeup-vector.md",
     "/Cargo.toml", "/Cargo.lock", "/README.md", "/CHANGELOG.md", "/LICENSE-APACHE", "/LICENSE-MIT",

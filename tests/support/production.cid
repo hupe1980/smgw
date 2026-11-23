@@ -2,11 +2,22 @@
   <Header id="smgw-cls-production-test"/>
   <IED name="CLS"><AccessPoint name="HAN"><Server><LDevice inst="LD0">
     <LN0 lnClass="LLN0" inst="" lnType="LLN0"/>
+    <LN lnClass="GGIO" inst="1" lnType="GGIO"/>
     <LN lnClass="DWMX" inst="1" lnType="DWMX"/>
   </LDevice></Server></AccessPoint></IED>
   <DataTypeTemplates>
     <LNodeType id="LLN0" lnClass="LLN0"/>
     <LNodeType id="DWMX" lnClass="DWMX"><DO name="WMaxSetPct" type="SetPoint"/></LNodeType>
+    <LNodeType id="GGIO" lnClass="GGIO"><DO name="Dim" type="DimControl"/></LNodeType>
+    <DOType id="DimControl" cdc="SPC">
+      <DA name="ctlModel" fc="CF" bType="Enum" type="ControlModel"><Val>direct-with-normal-security</Val></DA>
+      <DA name="Oper" fc="CO" bType="Struct" type="BoolOperate"/>
+    </DOType>
+    <DAType id="BoolOperate">
+      <BDA name="ctlVal" bType="BOOLEAN"/><BDA name="origin" bType="Struct" type="Origin"/>
+      <BDA name="ctlNum" bType="INT8U"/><BDA name="T" bType="Timestamp"/>
+      <BDA name="Test" bType="BOOLEAN"/><BDA name="Check" bType="Check"/>
+    </DAType>
     <DOType id="SetPoint" cdc="APC">
       <DA name="ctlModel" fc="CF" bType="Enum" type="ControlModel"><Val>direct-with-normal-security</Val></DA>
       <DA name="Oper" fc="CO" bType="Struct" type="Operate"/>

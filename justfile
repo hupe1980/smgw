@@ -32,7 +32,7 @@ demo directory="target/test-pki":
 
 # Exercise the IEC 61850 and EEBUS bridge with in-memory peers.
 bridge:
-    cargo test --locked -p smgw-cls --features fnn-bridge --test lpc_bridge
+    cargo test --locked -p smgw-cls --features fnn-bridge --test lpc_bridge --test relay_bridge
 
 # Verify the bundled wake-up fixture with OpenSSL and Rust.
 wakeup:
