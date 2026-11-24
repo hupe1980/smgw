@@ -54,7 +54,10 @@ def check(executable, directory):
     with ThreadPoolExecutor(max_workers=2) as pool:
         results = sorted(pool.map(verify, [command, command]), key=lambda p: p.returncode)
     results[0].check_returncode()
-    expect_replay(results[1].returncode, results[1].stderr)
+    loser = results[1]
+    if not (loser.returncode == 1 and "wake-up replay database writer is busy" in loser.stderr):
+        expect_replay(loser.returncode, loser.stderr)
+    # Once both processes exit, the committed watermark must reject a retry.
     replay = verify(command)
     expect_replay(replay.returncode, replay.stderr)
     # Without the option, an invoker explicitly gets an independent in-memory history.

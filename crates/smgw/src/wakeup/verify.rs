@@ -75,6 +75,8 @@ impl fmt::Display for VerifyError {
             #[cfg(feature = "wakeup-store")]
             Self::StoreAlreadyConfigured => "a replay database is already configured",
             #[cfg(feature = "wakeup-store")]
+            Self::Store(redb::Error::WouldBlock) => "wake-up replay database writer is busy",
+            #[cfg(feature = "wakeup-store")]
             Self::Store(e) => return write!(f, "wake-up replay database: {e}"),
             Self::Crypto(e) => return e.fmt(f),
         })
@@ -484,7 +486,9 @@ mod tests {
                     ready.wait();
                     match v.verify(&packet, NOW, ZERO) {
                         Ok(_) => true,
-                        Err(VerifyError::Replay) => false,
+                        Err(VerifyError::Replay | VerifyError::Store(redb::Error::WouldBlock)) => {
+                            false
+                        }
                         Err(other) => panic!("{other}"),
                     }
                 })
@@ -492,6 +496,11 @@ mod tests {
             let first = worker();
             let second = worker();
             assert_ne!(first.join().unwrap(), second.join().unwrap());
+            let mut reopened = verifier(&signer, 2).with_replay_database(&path).unwrap();
+            assert!(matches!(
+                reopened.verify(&packet, NOW, ZERO),
+                Err(VerifyError::Replay)
+            ));
         }
 
         #[test]

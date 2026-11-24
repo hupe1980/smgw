@@ -34,4 +34,4 @@ cargo run --locked -p smgw --features wakeup-store --example wakeup_verify -- \
 
 All verifiers for a recipient must share the same trusted file, including after key rotation. Protect it against replacement or rollback. Concurrent processes accept a timestamp once. Each verifier has its own signature budget.
 
-The redb store requires local byte-range locks on Linux, Apple platforms or Windows. Its 500 ms contention limit applies when acquiring a write transaction. Opening the file and completing disk I/O can take longer. [redb concurrency modes](https://docs.rs/redb/5.0.0/redb/enum.ConcurrencyMode.html)
+The redb store requires local byte-range locks on Linux, Apple platforms or Windows. A verifier that waits 500 ms for a writer returns a busy error. Retry after the writer finishes. A committed duplicate then returns a replay rejection. Opening the file and completing disk I/O can take longer. [redb concurrency modes](https://docs.rs/redb/5.0.0/redb/enum.ConcurrencyMode.html)
