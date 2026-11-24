@@ -13,7 +13,7 @@ def der_integer(raw: bytes) -> bytes:
 
 
 def main() -> None:
-    fixtures = Path(__file__).resolve().parents[1] / "examples" / "fixtures"
+    fixtures = Path(__file__).resolve().parents[1] / "crates/smgw/examples" / "fixtures"
     packet = (fixtures / "wakeup-v1.bin").read_bytes()
     # All fields outside the raw signature are fixed for this known-answer vector.
     prefix = (

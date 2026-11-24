@@ -26,23 +26,32 @@ jobs:
       - uses: actions/checkout@v4
       - run: rustup component add clippy rustfmt
       - run: rustup target add thumbv7em-none-eabihf
+      - run: cargo check -p smgw --locked --target thumbv7em-none-eabihf
       - run: cargo fmt --all -- --check
       - name: Check the allocation-free parser on bare metal
-        run: cargo check -p smgw-cls --locked --target thumbv7em-none-eabihf --no-default-features --features wakeup
+        run: cargo check -p smgw --locked --target thumbv7em-none-eabihf --no-default-features --features wakeup
       - run: cargo clippy --locked --workspace --all-features --all-targets -- -D warnings
       - run: cargo test --locked --workspace --all-features --all-targets
       - run: cargo test --locked --workspace --all-features --doc
+      - name: Run the metering examples
+        run: |
+          for example in taf1 taf2 taf6 taf7 taf8 taf9 taf10 taf14 taf15; do
+            cargo run --locked -p smgw --example "$example"
+          done
       - run: cargo run --locked -p xtask -- gen-pki
-      - run: cargo run --locked --features simulator --example mms_read
-      - run: cargo run --locked --no-default-features --example relay_tariff
+      - run: cargo run --locked -p smgw-cls --features simulator --example mms_read
+      - run: cargo run --locked -p smgw-cls --no-default-features --example relay_tariff
       - run: python3 scripts/check-wakeup-fixture.py
-      - run: cargo run --locked --features wakeup-verify --example wakeup_verify -- --fixture
+      - run: cargo run --locked -p smgw --features wakeup-verify --example wakeup_verify -- --fixture
       - run: python3 scripts/check-wakeup-replay.py
-      - run: cargo package --locked --all-features -p smgw-cls
+      - run: cargo package --locked --all-features --workspace --exclude xtask
       - name: Test the bridge and verifier from the packaged crate
         run: |
           package_dir=$(mktemp -d)
           version=$(cargo metadata --locked --no-deps --format-version 1 | jq -er '.packages[] | select(.name == "smgw-cls") | .version')
           tar -xzf "target/package/smgw-cls-$version.crate" -C "$package_dir" --strip-components=1
           cargo test --locked --manifest-path "$package_dir/Cargo.toml" --features fnn-bridge --test lpc_bridge --test relay_bridge
-          cargo run --locked --manifest-path "$package_dir/Cargo.toml" --features wakeup-store --example wakeup_verify -- --replay-db "$package_dir/replay.redb" --fixture
+          cargo run --locked --manifest-path "$package_dir/Cargo.toml" --features simulator,fsch-tariff --example mms_tariff -- target/test-pki
+          gateway_dir=$(mktemp -d)
+          tar -xzf "target/package/smgw-$version.crate" -C "$gateway_dir" --strip-components=1
+          cargo run --config "patch.crates-io.smgw-cls.path=\"$package_dir\"" --manifest-path "$gateway_dir/Cargo.toml" --features wakeup-store --example wakeup_verify -- --replay-db "$package_dir/replay.redb" --fixture

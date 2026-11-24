@@ -103,7 +103,7 @@ fn valid_recipient(id: &[u8; 9]) -> bool {
 /// Inspect a complete version-one message with fixed space and bounded work.
 ///
 /// ```
-/// use smgw_cls::wakeup::{parse, ParseError, SignatureWidth};
+/// use smgw::wakeup::{parse, ParseError, SignatureWidth};
 /// assert_eq!(parse(&[], SignatureWidth::Bits256), Err(ParseError::Length));
 /// ```
 pub fn parse(packet: &[u8], width: SignatureWidth) -> Result<UnverifiedWakeUp<'_>, ParseError> {

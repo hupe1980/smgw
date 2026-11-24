@@ -1,0 +1,32 @@
+[package]
+name = "smgw"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Allocation-free smart meter gateway simulation for electricity metering, load profiles, measurement delivery and CLS sessions"
+repository.workspace = true
+homepage.workspace = true
+keywords = ["smgw", "cls", "smart-meter", "no-std"]
+categories = ["network-programming", "no-std"]
+
+[features]
+wakeup = []
+wakeup-verify = ["wakeup", "dep:openssl"]
+wakeup-store = ["wakeup-verify", "dep:redb"]
+
+[dependencies]
+openssl = { workspace = true, optional = true }
+redb = { version = "5", optional = true }
+smgw-cls.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[[example]]
+name = "wakeup_verify"
+required-features = ["wakeup-verify"]
+
+[package.metadata.docs.rs]
+all-features = true

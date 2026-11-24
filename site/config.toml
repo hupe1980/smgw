@@ -1,11 +1,10 @@
-base_url = "https://hupe1980.github.io/smgw-cls"
-title = "smgw-cls"
-description = "Build and test smart meter gateway CLS sessions in Rust. Run an authenticated IEC 61850 MMS read, bridge EEBUS power limits and measurements and verify management wake-up messages."
+base_url = "https://hupe1980.github.io/smgw"
+title = "smgw"
+description = "Simulate smart meter gateways in Rust. Model electricity demand and meter histories, read IEC 61850 devices over TLS, and bridge EEBUS power limits."
 default_language = "en"
 generate_sitemap = true
 generate_robots_txt = true
 minify_html = true
 
 [extra]
-repo = "https://github.com/hupe1980/smgw-cls"
-home_title = "smgw-cls | Smart meter gateway simulation in Rust"
+repo = "https://github.com/hupe1980/smgw"

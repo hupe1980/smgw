@@ -1,62 +1,22 @@
-# smgw-cls
+# smgw
 
-A Rust library and loopback simulator for a Controllable Local System (CLS) communicating through a smart meter gateway. Drive a connection with a caller-supplied clock, read an IEC 61850 measurement over mutual TLS, or verify an archived gateway-management wake-up.
+Rust libraries for smart meter gateway simulation. Model electricity metering or connect a Controllable Local System (CLS) through an authenticated loopback gateway.
 
-[Project site](https://hupe1980.github.io/smgw-cls/) · [Developer guide](https://hupe1980.github.io/smgw-cls/guide/) · [Published crate](https://crates.io/crates/smgw-cls)
-
-Add the library with `cargo add smgw-cls`. To run the simulator, clone the repository and follow the example below.
-
-## Read a measurement on loopback
-
-The full workspace requires Rust 1.90 or later and OpenSSL development libraries with Brainpool support. From the repository root, run:
-
-```sh
-cargo run -p xtask -- gen-pki
-cargo run --features simulator --example mms_read
-```
-
-The first command creates seven-day test identities in `target/test-pki`. Reuse them for further reads. To regenerate, pass a new directory to `gen-pki` and to `mms_read` after `--`.
-
-The CLS connects to the gateway on the home area network (HAN). The gateway authenticates the CLS and checks its requested route before connecting to the active external market participant on the wide area network (WAN). That participant reads a synthetic meter value through the gateway using Manufacturing Message Specification (MMS).
-
-```text
-CLSLD0/MMXU1$MX$TotW$mag$f = 1250 W (MMS read over HAN and WAN mutual TLS)
-```
-
-## Choose a feature
-
-| Configuration | Capability |
+| Crate | Use it for |
 | --- | --- |
-| `default-features = false` | Allocation-free `no_std` session engine, logical FNN relay controls and Module 3 tariff lookup |
-| `runtime` | Tokio/OpenSSL endpoints and a bounded, single-session loopback proxy |
-| `simulator` | Runtime and the read-only IEC 61850 example |
-| `fnn-bridge` | Map IEC controls to EEBUS limits or logical relays, and serve power measurements or contact feedback over MMS |
-| `wakeup` | Inspect a management wake-up datagram without allocation |
-| `wakeup-verify` | Verify the recipient, signature, freshness and replay status against a provisioned gateway administrator key |
-| `wakeup-store` | Persist each recipient’s latest accepted timestamp in redb across verifier restarts and signing-key rotation |
+| [smgw](crates/smgw/) | Simulate the seven TR-03109-1 v1.1 metering use cases, v2.0 demand calculation (TAF 8) and meter-registered histories (TAF 15), or verify gateway-management wake-ups. |
+| [smgw-cls](crates/smgw-cls/) | Drive CLS sessions, read IEC 61850 devices over TLS, and bridge EEBUS controls and measurements. |
 
-From the repository root, run `just bridge` to test the MMS mappings, or `cargo run --locked --no-default-features --example relay_tariff` to see relay commands, independent contact feedback and tariff changes.
+Install with `cargo add smgw`, or select a CLS feature directly, for example `cargo add smgw-cls --features fnn-bridge`.
 
-The simulator uses a local TLS 1.2 Brainpool P-256 profile with separate trust anchors and pinned peer certificates on each leg. For an offline signature check with a known public key and reference time, run `cargo run --features wakeup-verify --example wakeup_verify -- --fixture`. Deployment requires its own certificate policy and gateway interoperability testing.
+From the workspace root, run `cargo run -p smgw --example taf1` for a monthly closing reading. The [metering guide](https://hupe1980.github.io/smgw/guide/metering/) also shows how the same missing reading affects a tariff register and a meter series.
 
-## Drive a session
+## Try the CLS simulator
 
-```rust
-use core::time::Duration;
-use smgw_cls::engine::{Action, Policy, Session};
+With Rust 1.90 or later, OpenSSL development libraries with Brainpool support, and `just` installed, run `just demo` from the workspace root. This generates test identities and reads a simulated 1250 W meter value over two mutually authenticated TLS connections. Run `just tariff` to read a daily FSCH schedule through the same gateway and print its three UTC tariff windows.
 
-let mut session = Session::new(Policy::default());
-let Some(Action::Connect { generation }) = session.start(Duration::ZERO) else {
-    unreachable!("a fresh session admits one connection");
-};
-// Report success after the transport authenticates the peer and authorizes its route.
-assert_eq!(session.connected(generation, Duration::from_secs(1)),
-           Some(Action::Ready { generation }));
-assert_eq!(session.cancel(), Some(Action::Close { generation }));
-```
+Run `just check` for formatting, Clippy and workspace tests. With Zola installed, run `just serve` and open `http://127.0.0.1:8000/`. The preview reloads site edits and includes both crates’ API documentation.
 
-Arm a timer for `Session::deadline()`, call `tick(now)` when it expires, and execute each returned action. The generation identifies the attempt so a late callback cannot activate a newer connection.
-
-For development, `just check` runs formatting, Clippy and tests. With Zola installed, `just site` builds and checks the guide and Rust API.
+[Developer guide](https://hupe1980.github.io/smgw/guide/) · [Changelog](CHANGELOG.md)
 
 Licensed under MIT OR Apache-2.0.

@@ -120,3 +120,22 @@ code, samp, kbd { font: .92em var(--mono); overflow-wrap: anywhere; }
   .mast-nav { gap: .5rem; }
   .mast-nav a { font-size: .88rem; }
 }
+
+.crate-pair, .topic-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.crate-pair { padding-bottom: clamp(2rem, 5vw, 4rem); }
+.crate-pair > a, .topic-card { border: 1px solid var(--line); border-radius: .5rem; background: var(--sheet); padding: clamp(1.25rem, 2.6vw, 2rem); }
+.crate-pair > a { color: var(--ink); text-decoration: none; }
+.crate-pair > a:hover { border-color: var(--accent); }
+.crate-pair h2 { font: 650 1.6rem var(--mono); }
+.crate-pair p, .topic-card p { color: var(--secondary); margin-block: .5rem 1rem; }
+.crate-pair span { color: var(--accent); text-decoration: underline; font-weight: 600; }
+.guide-index { padding-block: clamp(2.5rem, 6vw, 5rem); }
+.guide-index > .lead { margin-top: 1rem; max-width: 60ch; }
+.guide-index > .prose { max-width: 70ch; margin-bottom: 2rem; }
+.topic-card h2 { font-size: 1.55rem; letter-spacing: -.03em; }
+.topic-card ul { padding-inline-start: 1.25rem; margin-block: 0; }
+.topic-card li { margin-block: .3rem; }
+.guide-nav [aria-current] { font-weight: 700; color: var(--ink); }
+@media (max-width: 42rem) {
+  .crate-pair, .topic-grid { grid-template-columns: 1fr; }
+}

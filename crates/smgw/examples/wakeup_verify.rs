@@ -12,7 +12,7 @@ use std::{
 };
 
 use openssl::pkey::PKey;
-use smgw_cls::wakeup::verify::WakeUpVerifier;
+use smgw::wakeup::verify::WakeUpVerifier;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 

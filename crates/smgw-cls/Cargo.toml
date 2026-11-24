@@ -1,0 +1,44 @@
+[package]
+name = "smgw-cls"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Sans-I/O CLS session lifecycle and authenticated smart meter gateway simulator"
+repository.workspace = true
+homepage.workspace = true
+keywords = ["smgw", "cls", "bsi", "iec61850", "eebus"]
+categories = ["network-programming", "embedded", "no-std"]
+include = [
+    "/src/**/*.rs", "/examples/**/*.rs", "/tests/*.rs", "/tests/support/**",
+    "/examples/fixtures/*.cid",
+    "/Cargo.toml", "/Cargo.lock", "/README.md", "/LICENSE-APACHE", "/LICENSE-MIT",
+]
+
+[features]
+default = ["std"]
+std = ["alloc"]
+alloc = []
+runtime = ["std", "dep:openssl", "dep:tokio", "dep:tokio-openssl"]
+fnn-bridge = ["std", "iec61850-kit/server", "dep:eebus"]
+simulator = ["runtime", "iec61850-kit/server"]
+fsch-tariff = ["std", "iec61850-kit/client"]
+
+[dependencies]
+eebus = { version = "0.13.1", default-features = false, optional = true }
+openssl = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+tokio-openssl = { version = "0.6", optional = true }
+iec61850-kit = { version = "0.8", default-features = false, optional = true }
+
+[[example]]
+name = "mms_read"
+required-features = ["simulator"]
+
+[[example]]
+name = "mms_tariff"
+required-features = ["simulator", "fsch-tariff"]
+
+[package.metadata.docs.rs]
+all-features = true

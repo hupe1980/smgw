@@ -40,6 +40,3 @@ pub mod transport;
 
 #[cfg(feature = "fnn-bridge")]
 pub mod bridge;
-
-#[cfg(feature = "wakeup")]
-pub mod wakeup;

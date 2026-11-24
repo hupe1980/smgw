@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def build_verifier():
     completed = subprocess.run(
-        ["cargo", "build", "--locked", "--features", "wakeup-store", "--example",
+        ["cargo", "build", "--locked", "-p", "smgw", "--features", "wakeup-store", "--example",
          "wakeup_verify", "--message-format=json-render-diagnostics"],
         cwd=ROOT, stdout=subprocess.PIPE, text=True, check=True,
     )
@@ -32,8 +32,8 @@ def expect_replay(returncode, stderr):
 
 
 def check(executable, directory):
-    packet = ROOT / "examples/fixtures/wakeup-v1.bin"
-    key = ROOT / "examples/fixtures/wakeup-gwa-public.pem"
+    packet = ROOT / "crates/smgw/examples/fixtures/wakeup-v1.bin"
+    key = ROOT / "crates/smgw/examples/fixtures/wakeup-gwa-public.pem"
     archive = [str(key), "0e5453540000000001", "1735689600"]
     damaged = bytearray(packet.read_bytes())
     damaged[-1] ^= 1

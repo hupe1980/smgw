@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="wrap guide-layout">
+  <aside class="guide-nav">
+    <nav aria-label="Developer guide">
+      <a href="../">Developer guide</a>
+      {% set guide = get_section(path="guide/_index.md") %}
+      <ul>{% for topic in guide.pages %}
+        <li><a href="../{{ topic.slug }}/"{% if topic.path == page.path %} aria-current="page"{% endif %}>{{ topic.title }}</a></li>
+      {% endfor %}</ul>
+    </nav>
+  </aside>
+  <article class="prose">
+    <h1>{{ page.title }}</h1>
+    <p class="lead">{{ page.description }}</p>
+    {{ page.content | safe }}
+  </article>
+</div>
+{% endblock content %}

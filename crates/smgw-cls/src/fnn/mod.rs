@@ -2,3 +2,6 @@
 
 pub mod relay;
 pub mod tariff;
+
+#[cfg(feature = "fsch-tariff")]
+pub mod fsch;

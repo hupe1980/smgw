@@ -1,0 +1,26 @@
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B" release="4">
+  <Header id="daily-grid-tariff"/>
+  <IED name="CLS"><AccessPoint name="HAN"><Server><LDevice inst="LD0">
+    <LN0 lnClass="LLN0" inst="" lnType="LLN0"/>
+    <LN lnClass="FSCH" inst="1" lnType="Daily">
+      <DOI name="NumEntr"><DAI name="setVal"><Val>3</Val></DAI></DOI>
+      <DOI name="SchdIntv"><DAI name="setVal"><Val>8</Val></DAI></DOI>
+      <DOI name="ValING1"><DAI name="setVal"><Val>12</Val></DAI></DOI>
+      <DOI name="ValING2"><DAI name="setVal"><Val>6</Val></DAI></DOI>
+      <DOI name="ValING3"><DAI name="setVal"><Val>18</Val></DAI></DOI>
+    </LN>
+  </LDevice></Server></AccessPoint></IED>
+  <DataTypeTemplates>
+    <LNodeType id="LLN0" lnClass="LLN0"/>
+    <LNodeType id="Daily" lnClass="FSCH">
+      <DO name="NumEntr" type="Int"/><DO name="SchdIntv" type="Interval"/>
+      <DO name="StrTm1" type="Start"/>
+      <DO name="ValING1" type="Int"/><DO name="ValING2" type="Int"/><DO name="ValING3" type="Int"/>
+    </LNodeType>
+    <DOType id="Int" cdc="ING"><DA name="setVal" bType="INT32" fc="SP"/></DOType>
+    <DOType id="Interval" cdc="ING"><DA name="setVal" bType="INT32" fc="SP"/><DA name="units" bType="Struct" type="Units" fc="CF"/></DOType>
+    <DOType id="Start" cdc="TSG"><DA name="setTm" bType="Timestamp" fc="SP"/></DOType>
+    <DAType id="Units"><BDA name="SIUnit" bType="Enum" type="Unit"/></DAType>
+    <EnumType id="Unit"><EnumVal ord="84">h</EnumVal></EnumType>
+  </DataTypeTemplates>
+</SCL>

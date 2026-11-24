@@ -91,9 +91,9 @@ dependencies = [
 
 [[package]]
 name = "iec61850-kit"
-version = "0.5.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e648ac706190023dc3555b0e36f97b2d7d5b1f5ee096b0c729e17e61fe07ea3"
+checksum = "cf6885b8185739c66b9c22585c7a5f691e9a00db2d2f461418009e5b55a6ddb7"
 dependencies = [
  "roxmltree",
 ]
@@ -293,14 +293,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
+name = "smgw"
+version = "0.5.0"
+dependencies = [
+ "openssl",
+ "redb",
+ "smgw-cls",
+ "tempfile",
+]
+
+[[package]]
 name = "smgw-cls"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "eebus",
  "iec61850-kit",
  "openssl",
- "redb",
- "tempfile",
  "tokio",
  "tokio-openssl",
 ]
@@ -442,7 +450,7 @@ dependencies = [
 
 [[package]]
 name = "xtask"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "openssl",
  "rustix",

@@ -34,3 +34,6 @@ rustc-ice-*.txt
 
 # Default Zola build output.
 /site/public/
+
+# Local feedback drafts for upstream maintainers.
+/FEEDBCK_*.md

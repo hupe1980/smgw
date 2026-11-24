@@ -41,8 +41,10 @@ def main():
             seen[path] = Page(path)
         return seen[path]
 
-    for route in ("", "guide/"):
-        path = output / route / "index.html"
+    pages = [output / "index.html", *sorted((output / "guide").rglob("index.html"))]
+    for path in pages:
+        route = path.parent.relative_to(output).as_posix()
+        route = "" if route == "." else route + "/"
         page = read(path)
         url = base + route
         if url not in indexed or page.canonical != url or not page.description:
@@ -61,7 +63,7 @@ def main():
                 raise SystemExit(f"{path}: missing target: {ref}")
             if resolved.fragment and unquote(resolved.fragment) not in read(target).ids:
                 raise SystemExit(f"{path}: missing anchor: {ref}")
-    print("Landing page, guide, sitemap and local API links verified.")
+    print(f"{len(pages)} pages, sitemap, canonical URLs and local API links verified.")
 
 
 if __name__ == "__main__":
